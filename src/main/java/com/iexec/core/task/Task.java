@@ -84,6 +84,7 @@ public class Task {
     private String resultLink;
     private String chainCallbackData;
     private List<TaskStatusChange> dateStatusList;
+    private boolean interrupted;
 
     public Task(String dappName, String commandLine, int trust) {
         this.dappType = DappType.DOCKER;
@@ -93,6 +94,7 @@ public class Task {
         this.dateStatusList = new ArrayList<>();
         this.dateStatusList.add(new TaskStatusChange(TaskStatus.RECEIVED));
         this.currentStatus = TaskStatus.RECEIVED;
+        this.interrupted = false;
     }
 
     public Task(String dappName, String commandLine, int trust, String chainTaskId) {

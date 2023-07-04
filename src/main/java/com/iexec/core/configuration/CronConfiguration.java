@@ -19,6 +19,12 @@ public class CronConfiguration {
 
     @Value("${cron.detector.chain.initialize}")
     private int initialize;
+    
+    @Value("${cron.detector.chain.extend}")
+    private int extend;
+    
+    @Value("${cron.detector.chain.interrupt}")
+    private int interrupt;
 
     @Value("${cron.detector.chain.contribute}")
     private int contribute;

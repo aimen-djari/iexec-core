@@ -20,6 +20,8 @@ cron:
     chain:
       unstarted-tx:   300000  # 5m
       initialize:     30000   # 30s
+      extend:     	  30000   # 30s
+      interrupt:      30000   # 30s
       contribute:     30000   # 30s
       reveal:         30000   # 30s
       finalize:       30000   # 30s

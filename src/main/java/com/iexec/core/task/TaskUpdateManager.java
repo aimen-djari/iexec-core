@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -122,6 +123,7 @@ public class TaskUpdateManager implements TaskUpdateRequestConsumer  {
                 running2ConsensusReached(task);
                 running2RunningFailed(task);
                 initializedOrRunning2ContributionTimeout(task);
+                running2Interrupted(task);
                 break;
             case RUNNING_FAILED:
                 toFailed(task);
@@ -314,6 +316,26 @@ public class TaskUpdateManager implements TaskUpdateRequestConsumer  {
                     .chainTaskId(task.getChainTaskId())
                     .consensus(task.getConsensus())
                     .blockNumber(task.getConsensusReachedBlockNumber())
+                    .build());
+        }
+    }
+    
+    void running2Interrupted(Task task) {
+        boolean isTaskInRunningStatus = task.getCurrentStatus().equals(RUNNING);
+        boolean isInterrupted = task.isInterrupted();
+
+        if (isTaskInRunningStatus && isInterrupted) {
+            Optional<ChainTask> optional = iexecHubService.getChainTask(task.getChainTaskId());
+            if (optional.isEmpty()) return;
+            ChainTask chainTask = optional.get();
+
+            // change the the revealDeadline and consensus of the task from the chainTask info
+            updateTaskStatusAndSave(task, INTERRUPTED);
+
+            applicationEventPublisher.publishEvent(TaskInterruptedEvent.builder()
+                    .chainTaskId(task.getChainTaskId())
+                    .blockNumber(BigInteger.valueOf(task.getConsensusReachedBlockNumber()))
+                    .duration(BigInteger.valueOf(task.getMaxExecutionTime()))
                     .build());
         }
     }

@@ -136,7 +136,7 @@ public class DealWatcherServiceTests {
                 .publishEvent(argumentCaptor.capture());
         assertThat(argumentCaptor.getValue()).isEqualTo(new TaskCreatedEvent(task.getChainTaskId()));
     }
-
+    
     @Test
     public void shouldUpdateLastSeenBlockWhenOneDealAndNotCreateTaskSinceDealIsExpired() {
         ChainDeal chainDeal = ChainDeal.builder()

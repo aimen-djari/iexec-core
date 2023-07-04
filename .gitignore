@@ -31,3 +31,4 @@ src/main/java/com/iexec/core/utils/version/Version.java
 .vscode/
 .env
 .dockerignore
+/.DS_Store

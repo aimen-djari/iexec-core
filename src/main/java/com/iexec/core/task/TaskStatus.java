@@ -39,6 +39,7 @@ public enum TaskStatus {
     FINALIZE_FAILED,
     FINAL_DEADLINE_REACHED,
     COMPLETED,
+    INTERRUPTED,
     FAILED;
 
     public static List<TaskStatus> getWaitingContributionStatuses() {
@@ -60,7 +61,7 @@ public enum TaskStatus {
     }
 
     public static List<TaskStatus> getFinalStatuses() {
-        return List.of(FAILED, COMPLETED);
+        return List.of(FAILED, COMPLETED, INTERRUPTED);
     }
 
     public static List<TaskStatus> getStatusesWhereFinalDeadlineIsImpossible() {

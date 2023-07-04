@@ -126,6 +126,10 @@ public class DealWatcherService {
         }
         int startBag = chainDeal.getBotFirst().intValue();
         int endBag = chainDeal.getBotFirst().intValue() + chainDeal.getBotSize().intValue();
+        long duration = chainDeal.getChainCategory().getMaxExecutionTime();
+        if(chainDeal.getChainCategory().getId() == 5){
+        	duration = chainDeal.getDuration().longValue();
+        }
         for (int taskIndex = startBag; taskIndex < endBag; taskIndex++) {
             Optional<Task> optional = taskService.addTask(
                     chainDealId,
@@ -134,7 +138,7 @@ public class DealWatcherService {
                     BytesUtils.hexStringToAscii(chainDeal.getChainApp().getUri()),
                     chainDeal.getParams().getIexecArgs(),
                     chainDeal.getTrust().intValue(),
-                    chainDeal.getChainCategory().getMaxExecutionTime(),
+                    duration,
                     chainDeal.getTag(),
                     iexecHubService.getChainDealContributionDeadline(chainDeal),
                     iexecHubService.getChainDealFinalDeadline(chainDeal));

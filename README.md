@@ -1,10 +1,16 @@
-# iexec-core
+<p align="center"><img width=50% src="https://raw.githubusercontent.com/DataCloud-project/toolbox/master/docs/img/datacloud_logo.png"></p>&nbsp;
+
+[![GitHub Issues](https://img.shields.io/github/issues/DataCloud-project/R-MARKET_Scheduler.svg)](https://github.com/DataCloud-project/R-MARKET_Scheduler/issues)
+[![License](https://img.shields.io/badge/license-Apache2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+# R-MARKET_Scheduler
+The R-MARKET Scheduler developed on the basis of [iExec Core](https://github.com/iExecBlockchainComputing/iexec-core).
 
 ## Overview
 
 The goal of the core component is to monitor the chain to check if there is any work to perform. In case there is, the core will orchestrate the work among the different workers that will participate in the computation.
 
-## Run an iexec-core
+## Run an R-MARKET_Scheduler
 
 Gradle is used to build the project. It can be built using the gradle wrapper included in the project (so no need to have gradle installed on your machine) with the following command:
 ```
