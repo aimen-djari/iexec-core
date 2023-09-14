@@ -65,6 +65,9 @@ public class DealWatcherService {
      */
     @Async
     public void run() {
+    	log.info("Deal RUN [lastSeenBlockWithTaskExtendedEvent:{}]", configurationService.getLastSeenBlockWithDeal());
+    	
+    	
         subscribeToDealEventFromOneBlockToLatest(configurationService.getLastSeenBlockWithDeal());
     }
 
@@ -127,8 +130,10 @@ public class DealWatcherService {
         int startBag = chainDeal.getBotFirst().intValue();
         int endBag = chainDeal.getBotFirst().intValue() + chainDeal.getBotSize().intValue();
         long duration = chainDeal.getChainCategory().getMaxExecutionTime();
+        boolean service = false;
         if(chainDeal.getChainCategory().getId() == 5){
         	duration = chainDeal.getDuration().longValue();
+        	service = true;
         }
         for (int taskIndex = startBag; taskIndex < endBag; taskIndex++) {
             Optional<Task> optional = taskService.addTask(
@@ -141,7 +146,8 @@ public class DealWatcherService {
                     duration,
                     chainDeal.getTag(),
                     iexecHubService.getChainDealContributionDeadline(chainDeal),
-                    iexecHubService.getChainDealFinalDeadline(chainDeal));
+                    iexecHubService.getChainDealFinalDeadline(chainDeal),
+                    service);
             optional.ifPresent(task -> applicationEventPublisher
                     .publishEvent(new TaskCreatedEvent(task.getChainTaskId())));
         }

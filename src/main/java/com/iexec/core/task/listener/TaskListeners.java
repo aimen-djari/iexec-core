@@ -195,17 +195,35 @@ public class TaskListeners {
     }
 
     @EventListener
-    public void onTaskInterruptedEvent(TaskInterruptedEvent event) {
+    public void onPleaseAbortEvent(PleaseAbortEvent event) {
         String chainTaskId = event.getChainTaskId();
-        log.info("Received TaskInterruptedEvent [chainTaskId:{}] ", chainTaskId);
+        log.info("Received PleaseAbortEvent [chainTaskId:{}] ", chainTaskId);
 
+        
+        List<String> workerAddresses = new ArrayList<>();
+        for (Replicate replicate : replicatesService.getReplicates(chainTaskId)) {
+            workerAddresses.add(replicate.getWalletAddress());
+            workerService.removeChainTaskIdFromWorker(chainTaskId, replicate.getWalletAddress());
+        }
+        
         notificationService.sendTaskNotification(TaskNotification.builder()
                 .chainTaskId(chainTaskId)
+                .workersAddress(workerAddresses)
                 .taskNotificationType(TaskNotificationType.PLEASE_ABORT)
-                .workersAddress(Collections.emptyList())
+                .taskNotificationExtra(TaskNotificationExtra.builder()
+                        .taskAbortCause(TaskAbortCause.INTERRUPTED)
+                        .build())
                 .build());
+        
+        log.info("NotifyAbortInterruption completed[workerAddresses:{}]", workerAddresses);
+    }
+    
+    @EventListener
+    public void onTaskInterruptEvent(TaskInterruptEvent event) {
+        String chainTaskId = event.getChainTaskId();
+        log.info("Received TaskInterruptEvent [chainTaskId:{}] ", chainTaskId);
 
-        removeChainTaskIdFromWorkers(chainTaskId);
+        taskUpdateManager.publishUpdateTaskRequest(event.getChainTaskId());
     }
 
     private void removeChainTaskIdFromWorkers(String chainTaskId) {

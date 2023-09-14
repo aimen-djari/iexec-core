@@ -38,6 +38,10 @@ class Configuration {
     private Long version;
 
     private BigInteger lastSeenBlockWithDeal;
+    
+    private BigInteger lastSeenBlockWithExtendedEvent;
+    
+    private BigInteger lastSeenBlockWithInterruptEvent;
 
 }
 

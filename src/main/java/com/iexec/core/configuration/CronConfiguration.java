@@ -10,6 +10,12 @@ public class CronConfiguration {
 
     @Value("${cron.deal.replay}")
     private int dealReplay;
+    
+    @Value("${cron.task.extended.replay}")
+    private int extendedEventReplay;
+    
+    @Value("${cron.task.interrupt.replay}")
+    private int interruptEventReplay;
 
     @Value("${cron.detector.worker-lost}")
     private int workerLost;
@@ -19,12 +25,6 @@ public class CronConfiguration {
 
     @Value("${cron.detector.chain.initialize}")
     private int initialize;
-    
-    @Value("${cron.detector.chain.extend}")
-    private int extend;
-    
-    @Value("${cron.detector.chain.interrupt}")
-    private int interrupt;
 
     @Value("${cron.detector.chain.contribute}")
     private int contribute;

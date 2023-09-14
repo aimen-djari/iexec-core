@@ -46,7 +46,7 @@ import static com.iexec.common.utils.BytesUtils.stringToBytes;
 import static com.iexec.common.utils.DateTimeUtils.now;
 
 import com.iexec.core.task.event.TaskExtendedEvent;
-import com.iexec.core.task.event.TaskInterruptedEvent;
+import com.iexec.core.task.event.TaskInterruptEvent;
 
 @Slf4j
 @Service
@@ -138,8 +138,8 @@ public class IexecHubService extends IexecHubAbstractService {
 		long maxTime = chainDeal.getChainCategory().getMaxExecutionTime();
 		long maxNbOfPeriods = getMaxNbOfPeriodsForConsensus();
 		if (chainDeal.getChainCategory().getId() == 5) {
-			maxTime = chainDeal.getDuration().longValue();
-			maxNbOfPeriods = 10;
+			maxTime = chainDeal.getDuration().longValue() * 1000;
+			maxNbOfPeriods = 1;
 		}
 		maxNbOfPeriods = (maxNbOfPeriods == -1) ? 10 : maxNbOfPeriods;
 		return new Date(startTime + maxTime * maxNbOfPeriods);
@@ -161,10 +161,12 @@ public class IexecHubService extends IexecHubAbstractService {
 	public Date getChainDealFinalDeadline(ChainDeal chainDeal) {
 		long startTime = chainDeal.getStartTime().longValue() * 1000;
 		long maxTime = chainDeal.getChainCategory().getMaxExecutionTime();
+		long maxNbOfPeriods = 10;
 		if (chainDeal.getChainCategory().getId() == 5) {
-			maxTime = chainDeal.getDuration().longValue();
+			maxTime = chainDeal.getDuration().longValue() * 1000;
+			maxNbOfPeriods = 1;
 		}
-		return new Date(startTime + maxTime * 10);
+		return new Date(startTime + maxTime * maxNbOfPeriods);
 	}
 
 	@Deprecated
@@ -215,6 +217,46 @@ public class IexecHubService extends IexecHubAbstractService {
 
 		log.error("Failed to initialize [chainDealId:{}, taskIndex:{}]", chainDealId, taskIndex);
 		return Optional.empty();
+	}
+
+	public boolean canExtend(String chainTaskId) {
+		Optional<ChainTask> optional = getChainTask(chainTaskId);
+		if (!optional.isPresent()) {
+			return false;
+		}
+		ChainTask chainTask = optional.get();
+
+		boolean isChainTaskStatusActive = chainTask.getStatus().equals(ChainTaskStatus.ACTIVE);
+		boolean isFinalDeadlineInFuture = now() < chainTask.getFinalDeadline();
+
+		boolean ret = isChainTaskStatusActive && isFinalDeadlineInFuture;
+		if (ret) {
+			log.info("Extensible onchain [chainTaskId:{}]", chainTaskId);
+		} else {
+			log.warn("Can't extend [chainTaskId:{}, " + "isChainTaskStatusActive:{}, isFinalDeadlineInFuture:{}]",
+					chainTaskId, isChainTaskStatusActive, isFinalDeadlineInFuture);
+		}
+		return ret;
+	}
+
+	public boolean canInterrupt(String chainTaskId) {
+		Optional<ChainTask> optional = getChainTask(chainTaskId);
+		if (!optional.isPresent()) {
+			return false;
+		}
+		ChainTask chainTask = optional.get();
+
+		boolean isChainTaskStatusActive = chainTask.getStatus().equals(ChainTaskStatus.ACTIVE);
+		boolean isFinalDeadlineInPast = now() >= chainTask.getFinalDeadline();
+
+		boolean ret = isChainTaskStatusActive && isFinalDeadlineInPast;
+		if (ret) {
+			log.info("Interruptible onchain [chainTaskId:{}]", chainTaskId);
+		} else {
+			log.warn("Can't interrupt [chainTaskId:{}, " + "isChainTaskStatusActive:{}, isFinalDeadlineInPast:{}]",
+					chainTaskId, isChainTaskStatusActive, isFinalDeadlineInPast);
+		}
+		return ret;
 	}
 
 	public boolean canFinalize(String chainTaskId) {
@@ -394,8 +436,11 @@ public class IexecHubService extends IexecHubAbstractService {
 		});
 	}
 
-	public Flowable<Optional<TaskExtendedEvent>> getTaskExtendedEventObservable(BigInteger from, BigInteger to,
-			String chainTaskId) {
+	Flowable<Optional<TaskExtendedEvent>> getTaskExtendedEventObservableToLatest(BigInteger from) {
+		return getTaskExtendedEventObservable(from, null);
+	}
+
+	Flowable<Optional<TaskExtendedEvent>> getTaskExtendedEventObservable(BigInteger from, BigInteger to) {
 		DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(from);
 		DefaultBlockParameter toBlock = DefaultBlockParameterName.LATEST;
 		if (to != null) {
@@ -403,15 +448,34 @@ public class IexecHubService extends IexecHubAbstractService {
 		}
 		return getHubContract().taskExtendedEventFlowable(fromBlock, toBlock).map(taskExtend -> {
 
-			if (BytesUtils.bytesToString(taskExtend.taskid).equalsIgnoreCase(chainTaskId)) {
+			if (canExtend(BytesUtils.bytesToString(taskExtend.taskid))) {
 				return Optional.of(new TaskExtendedEvent(taskExtend));
 			}
 			return Optional.empty();
 		});
 	}
-	
-	public Flowable<Optional<TaskInterruptedEvent>> getTaskInterruptedEventObservable(BigInteger from, BigInteger to,
-			String chainTaskId) {
+
+	Flowable<Optional<TaskExtendedEvent>> getTaskExtendedEventObservableOfTaskId(BigInteger from, BigInteger to,
+			String taskId) {
+		DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(from);
+		DefaultBlockParameter toBlock = DefaultBlockParameterName.LATEST;
+		if (to != null) {
+			toBlock = DefaultBlockParameter.valueOf(to);
+		}
+		return getHubContract().taskExtendedEventFlowable(fromBlock, toBlock).map(taskExtend -> {
+
+			if (taskId.equals(BytesUtils.bytesToString(taskExtend.taskid))) {
+				return Optional.of(new TaskExtendedEvent(taskExtend));
+			}
+			return Optional.empty();
+		});
+	}
+
+	Flowable<Optional<TaskInterruptEvent>> getTaskInterruptEventObservableToLatest(BigInteger from) {
+		return getTaskInterruptEventObservable(from, null);
+	}
+
+	Flowable<Optional<TaskInterruptEvent>> getTaskInterruptEventObservable(BigInteger from, BigInteger to) {
 		DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(from);
 		DefaultBlockParameter toBlock = DefaultBlockParameterName.LATEST;
 		if (to != null) {
@@ -419,8 +483,24 @@ public class IexecHubService extends IexecHubAbstractService {
 		}
 		return getHubContract().taskInterruptEventFlowable(fromBlock, toBlock).map(taskInterrupt -> {
 
-			if (BytesUtils.bytesToString(taskInterrupt.taskid).equalsIgnoreCase(chainTaskId)) {
-				return Optional.of(new TaskInterruptedEvent(taskInterrupt));
+			if (canInterrupt(BytesUtils.bytesToString(taskInterrupt.taskid))) {
+				return Optional.of(new TaskInterruptEvent(taskInterrupt));
+			}
+			return Optional.empty();
+		});
+	}
+
+	Flowable<Optional<TaskInterruptEvent>> getTaskInterruptEventObservableOfTaskId(BigInteger from, BigInteger to,
+			String taskId) {
+		DefaultBlockParameter fromBlock = DefaultBlockParameter.valueOf(from);
+		DefaultBlockParameter toBlock = DefaultBlockParameterName.LATEST;
+		if (to != null) {
+			toBlock = DefaultBlockParameter.valueOf(to);
+		}
+		return getHubContract().taskInterruptEventFlowable(fromBlock, toBlock).map(taskInterrupt -> {
+
+			if (taskId.equals(BytesUtils.bytesToString(taskInterrupt.taskid))) {
+				return Optional.of(new TaskInterruptEvent(taskInterrupt));
 			}
 			return Optional.empty();
 		});

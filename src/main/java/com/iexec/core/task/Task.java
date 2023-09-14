@@ -84,6 +84,7 @@ public class Task {
     private String resultLink;
     private String chainCallbackData;
     private List<TaskStatusChange> dateStatusList;
+    private boolean service;
     private boolean interrupted;
 
     public Task(String dappName, String commandLine, int trust) {
@@ -95,6 +96,7 @@ public class Task {
         this.dateStatusList.add(new TaskStatusChange(TaskStatus.RECEIVED));
         this.currentStatus = TaskStatus.RECEIVED;
         this.interrupted = false;
+        this.service = false;
     }
 
     public Task(String dappName, String commandLine, int trust, String chainTaskId) {

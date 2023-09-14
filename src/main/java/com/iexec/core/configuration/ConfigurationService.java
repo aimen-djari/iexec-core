@@ -39,16 +39,26 @@ public class ConfigurationService {
     private Configuration getConfiguration() {
         if (configurationRepository.count() > 0)
             return configurationRepository.findAll().get(0);
-
+        
         return configurationRepository.save(
             Configuration
                     .builder()
                     .lastSeenBlockWithDeal(BigInteger.valueOf(chainConfig.getStartBlockNumber()))
+                    .lastSeenBlockWithExtendedEvent(BigInteger.valueOf(chainConfig.getStartBlockNumber()))
+                    .lastSeenBlockWithInterruptEvent(BigInteger.valueOf(chainConfig.getStartBlockNumber()))
                     .build());
     }
 
     public BigInteger getLastSeenBlockWithDeal() {
         return this.getConfiguration().getLastSeenBlockWithDeal();
+    }
+    
+    public BigInteger getLastSeenBlockWithExtendedEvent() {
+        return this.getConfiguration().getLastSeenBlockWithExtendedEvent();
+    }
+    
+    public BigInteger getLastSeenBlockWithInterruptEvent() {
+        return this.getConfiguration().getLastSeenBlockWithInterruptEvent();
     }
 
     public void setLastSeenBlockWithDeal(BigInteger lastBlockNumber) {
@@ -57,6 +67,17 @@ public class ConfigurationService {
         configurationRepository.save(configuration);
     }
 
+    public void setLastSeenBlockWithExtendedEvent(BigInteger lastBlockNumber) {
+        Configuration configuration = this.getConfiguration();
+        configuration.setLastSeenBlockWithExtendedEvent(lastBlockNumber);
+        configurationRepository.save(configuration);
+    }
+    
+    public void setLastSeenBlockWithInterruptEvent(BigInteger lastBlockNumber) {
+        Configuration configuration = this.getConfiguration();
+        configuration.setLastSeenBlockWithInterruptEvent(lastBlockNumber);
+        configurationRepository.save(configuration);
+    }
     private ReplayConfiguration getReplayConfiguration() {
         if (replayConfigurationRepository.count() > 0)
             return replayConfigurationRepository.findAll().get(0);

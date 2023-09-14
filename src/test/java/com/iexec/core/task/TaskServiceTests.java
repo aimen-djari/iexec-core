@@ -80,7 +80,7 @@ public class TaskServiceTests {
 
         when(taskRepository.save(any())).thenReturn(task);
         Optional<Task> saved = taskService.addTask(CHAIN_DEAL_ID, 0, 0, DAPP_NAME, COMMAND_LINE,
-                2, maxExecutionTime, "0x0", contributionDeadline, finalDeadline);
+                2, maxExecutionTime, "0x0", contributionDeadline, finalDeadline, false);
         assertThat(saved).isPresent();
         assertThat(saved).isEqualTo(Optional.of(task));
     }
@@ -91,7 +91,7 @@ public class TaskServiceTests {
         task.changeStatus(TaskStatus.INITIALIZED);
         when(taskRepository.findByChainDealIdAndTaskIndex(CHAIN_DEAL_ID, 0)).thenReturn(Optional.of(task));
         Optional<Task> saved = taskService.addTask(CHAIN_DEAL_ID, 0, 0, DAPP_NAME, COMMAND_LINE,
-                2, maxExecutionTime, "0x0", contributionDeadline, finalDeadline);
+                2, maxExecutionTime, "0x0", contributionDeadline, finalDeadline, false);
         assertThat(saved).isEqualTo(Optional.empty());
     }
 

@@ -39,6 +39,7 @@ public enum TaskStatus {
     FINALIZE_FAILED,
     FINAL_DEADLINE_REACHED,
     COMPLETED,
+    INTERRUPTING,
     INTERRUPTED,
     FAILED;
 
@@ -67,6 +68,12 @@ public enum TaskStatus {
     public static List<TaskStatus> getStatusesWhereFinalDeadlineIsImpossible() {
         List<TaskStatus> excludedStatuses = new ArrayList<>(getFinalStatuses());
         Collections.addAll(excludedStatuses, FINAL_DEADLINE_REACHED);
+        return excludedStatuses;
+    }
+    
+    public static List<TaskStatus> getStatusesWhereInterruptionIsImpossible() {
+        List<TaskStatus> excludedStatuses = new ArrayList<>(getFinalStatuses());
+        Collections.addAll(excludedStatuses, INTERRUPTING);
         return excludedStatuses;
     }
 

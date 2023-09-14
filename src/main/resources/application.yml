@@ -15,13 +15,13 @@ mongock:
 cron:
   # all in milliseconds
   deal.replay: 60000  # 1m
+  task.extended.replay: 30000  # 30s
+  task.interrupt.replay: 30000  # 30s
   detector:
     worker-lost:      30000  # 30s
     chain:
       unstarted-tx:   300000  # 5m
       initialize:     30000   # 30s
-      extend:     	  30000   # 30s
-      interrupt:      30000   # 30s
       contribute:     30000   # 30s
       reveal:         30000   # 30s
       finalize:       30000   # 30s

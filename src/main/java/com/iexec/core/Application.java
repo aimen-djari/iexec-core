@@ -17,6 +17,8 @@
 package com.iexec.core;
 
 import com.iexec.core.chain.DealWatcherService;
+import com.iexec.core.chain.TaskExtendedWatcherService;
+import com.iexec.core.chain.TaskInterruptWatcherService;
 import io.changock.runner.spring.v5.config.EnableChangock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -30,6 +32,12 @@ public class Application implements CommandLineRunner {
 
     @Autowired
     private DealWatcherService dealWatcherService;
+    
+    @Autowired
+    private TaskExtendedWatcherService taskExtendedWatcherService;
+    
+    @Autowired
+    private TaskInterruptWatcherService taskInterruptWatcherService;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -38,5 +46,7 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         dealWatcherService.run();
+        taskExtendedWatcherService.run();
+        taskInterruptWatcherService.run();
     }
 }
